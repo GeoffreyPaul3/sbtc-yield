@@ -1,50 +1,38 @@
-# React + TypeScript + Vite
+# sBTC Yield - Yield Simulation App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Welcome to the **sBTC Yield** project! This is a decentralized finance (DeFi) yield simulation app where users can input different amounts of **BTC** to see how much yield they would earn if they converted it into **sBTC**. The app allows users to explore different scenarios based on deposit amounts, durations, and yield rates, while staying informed with the latest **Bitcoin news** and tracking their **Stacks Stacking**.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **BTC to sBTC Yield Simulation**:  
+  Users can input different amounts of **BTC** to simulate potential yields when converted into **sBTC** based on various deposit amounts, durations, and yield rates.
+  
+- **Stacks Stacking Integration**:  
+  Supports Stacks Stacking, allowing users to see staking opportunities and potential rewards for their **sBTC** holdings.
 
-## Expanding the ESLint configuration
+- **Bitcoin News Feed**:  
+  Stay updated with real-time Bitcoin news fetched from various sources like **CryptoCompare** and **CoinGecko** to keep users informed about market trends.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **Multi-API Support**:  
+  Integrates with multiple APIs (CoinGecko, CoinCap, Binance) to ensure reliable fetching of BTC prices and other relevant data, with fallback mechanisms for API errors.
 
-- Configure the top-level `parserOptions` property like this:
+- **Real-Time Yield Estimator**:  
+  Provides an accurate and dynamic yield estimator that adapts based on real-time data, ensuring a reliable simulation of BTC yields over time.
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## Technologies Used
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+- **Frontend**:  
+  - React.js (with hooks and functional components)
+  - Tailwind CSS for styling
+  - TypeScript for type safety
+  - Vite for fast and optimized development builds
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+- **Backend**:  
+  - Node.js for server-side logic (using server actions)
+  - APIs: CoinGecko, CryptoCompare, Binance, and custom backend for yield simulation calculations
+  - Stacks API for Stacks Staking functionality
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+- **Others**:  
+  - Bitcoin News API integration
+  - Caching mechanisms to ensure smooth performance under heavy loads
+  - Error handling to ensure app stability during API failures or rate limiting
