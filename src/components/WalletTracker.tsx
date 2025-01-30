@@ -1,8 +1,10 @@
+"use client"
+
 import { useState } from "react";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { Wallet, ArrowRight, Lock } from "lucide-react";
+import { Wallet, ArrowRight, Lock, Loader } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { StacksStaking } from "./StacksStaking";
@@ -15,38 +17,30 @@ interface WalletData {
 }
 
 const isValidBitcoinAddress = (address: string): boolean => {
-  // Basic validation for different Bitcoin address formats
   const legacyFormat = /^[1][a-km-zA-HJ-NP-Z1-9]{25,34}$/;
   const segwitFormat = /^[3][a-km-zA-HJ-NP-Z1-9]{25,34}$/;
   const nativeSegwitFormat = /^bc1[a-zA-HJ-NP-Z0-9]{39,59}$/;
-  
   return legacyFormat.test(address) || segwitFormat.test(address) || nativeSegwitFormat.test(address);
 };
 
 const fetchWalletData = async (address: string): Promise<WalletData> => {
   if (!address) throw new Error("No address provided");
   if (!isValidBitcoinAddress(address)) throw new Error("Invalid Bitcoin address format");
-  
-  // Using Blockstream API which supports all address types
-  const response = await fetch(`https://blockstream.info/api/address/${address}`);
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to fetch wallet data");
+
+  const [dataResponse, txResponse] = await Promise.all([
+    fetch(`https://blockstream.info/api/address/${address}`),
+    fetch(`https://blockstream.info/api/address/${address}/txs`),
+  ]);
+
+  if (!dataResponse.ok || !txResponse.ok) {
+    throw new Error("Failed to fetch wallet data. Please check the address and try again.");
   }
-  
-  // Fetch transaction history
-  const txResponse = await fetch(`https://blockstream.info/api/address/${address}/txs`);
-  const txData = await txResponse.json();
-  
-  if (!txResponse.ok) {
-    throw new Error("Failed to fetch transaction data");
-  }
-  
-  // Calculate totals from transaction history
+
+  const [data, txData] = await Promise.all([dataResponse.json(), txResponse.json()]);
+
   let totalReceived = 0;
   let totalSent = 0;
-  
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   txData.forEach((tx: any) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,12 +56,12 @@ const fetchWalletData = async (address: string): Promise<WalletData> => {
       }
     });
   });
-  
+
   return {
     balance: data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum,
-    totalReceived: totalReceived,
-    totalSent: totalSent,
-    txCount: data.chain_stats.tx_count
+    totalReceived: totalReceived / 1e8, // Convert satoshis to BTC
+    totalSent: totalSent / 1e8, // Convert satoshis to BTC
+    txCount: data.chain_stats.tx_count,
   };
 };
 
@@ -82,19 +76,22 @@ export const WalletTracker = () => {
     enabled: !!activeAddress,
     retry: 2,
     meta: {
-      onSettled: ( error: Error | null) => {
+      onSettled: (error: Error | null) => {
         if (error) {
           toast.error(error.message);
         }
-      }
-    }
+      },
+    },
   });
-  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!address) {
       toast.error("Please enter a wallet address");
+      return;
+    }
+    if (!isValidBitcoinAddress(address)) {
+      toast.error("Invalid Bitcoin address format");
       return;
     }
     setActiveAddress(address);
@@ -126,18 +123,28 @@ export const WalletTracker = () => {
               placeholder="Enter BTC wallet address"
               className="flex-1 bg-gray-800 border-gray-700 text-white text-sm sm:text-base"
             />
-            <Button 
+            <Button
               type="submit"
               className="bg-btc-orange hover:bg-btc-light text-white w-full sm:w-auto"
               disabled={isLoading}
             >
-              <ArrowRight className="w-4 h-4" />
+              {isLoading ? (
+                <Loader className="w-4 h-4 animate-spin" />
+              ) : (
+                <ArrowRight className="w-4 h-4" />
+              )}
             </Button>
           </form>
 
           {error && (
             <div className="p-4 rounded-lg bg-red-900/20 border border-red-700/50 text-red-200 text-sm">
               {error.message}
+            </div>
+          )}
+
+          {isLoading && (
+            <div className="flex justify-center items-center p-4">
+              <Loader className="w-6 h-6 animate-spin text-btc-orange" />
             </div>
           )}
 
